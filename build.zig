@@ -24,7 +24,7 @@ pub fn build(b: *std.Build) void {
     // ------------------------------------------------------------- options
     //
     // The GPU backend is opt-in. A CPU-only configuration must not resolve,
-    // download, build, or link the sibling wgpu package or wgpu-native. The
+    // download, build, or link the wgpu package or wgpu-native. The
     // `wgpu` dependency in build.zig.zon is marked lazy, and this build script
     // only touches it when `-Dgpu=true` is passed.
     const gpu_enabled = b.option(
@@ -62,7 +62,7 @@ pub fn build(b: *std.Build) void {
     import_buf[import_count] = .{ .name = "glyph_manifest", .module = glyph_manifest_module };
     import_count += 1;
 
-    // The wgpu module import, resolved to the real sibling package when
+    // The wgpu module import, resolved to the published package when
     // `-Dgpu=true`; a CPU-only build gets an inert stub instead. Zig 0.17's
     // AstGen resolves every `@import` literal in every parsed file, including
     // files that are only reachable through untaken comptime branches, so the
@@ -74,22 +74,22 @@ pub fn build(b: *std.Build) void {
         const native_prefix = b.option(
             []const u8,
             "wgpu-native-prefix",
-            "wgpu-native install prefix forwarded to the sibling wgpu package",
+            "wgpu-native install prefix forwarded to the wgpu package",
         );
         const native_lib = b.option(
             []const u8,
             "wgpu-native-lib",
-            "exact libwgpu_native path forwarded to the sibling wgpu package",
+            "exact libwgpu_native path forwarded to the wgpu package",
         );
         const native_linkage = b.option(
             []const u8,
             "wgpu-native-linkage",
-            "dynamic or static linking forwarded to the sibling wgpu package",
+            "dynamic or static linking forwarded to the wgpu package",
         );
         const native_link = b.option(
             bool,
             "wgpu-native-link",
-            "forwarded to the sibling wgpu package (set false to link yourself)",
+            "forwarded to the wgpu package (set false to link yourself)",
         );
 
         if (b.lazyDependency("wgpu", .{
@@ -104,8 +104,8 @@ pub fn build(b: *std.Build) void {
             import_buf[import_count] = .{ .name = "wgpu", .module = gpu_wgpu_module.? };
             import_count += 1;
         } else {
-            // With a local path dependency this cannot happen; it would mean the
-            // dependency is disabled by the Zig package manager. Fail loudly
+            // The dependency is declared, so this only happens when the
+            // package manager is disabled (e.g. `--system`). Fail loudly
             // instead of silently producing a CPU-only build.
             std.debug.print(
                 "vellz: -Dgpu=true was passed but the `wgpu` dependency could not be resolved\n",
